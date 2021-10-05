@@ -1,6 +1,6 @@
 {
   "name": "release",
-  "version": "6.3.1",
+  "version": "6.3.2",
   "description": "Generate changelogs with a single command",
   "scripts": {},
   "files": [
