@@ -1,12 +1,8 @@
 {
   "name": "release",
-  "version": "6.3.0",
+  "version": "6.3.1",
   "description": "Generate changelogs with a single command",
-  "scripts": {
-    "test": "yarn lint",
-    "lint": "zeit-eslint --ext .jsx,.js .",
-    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' '*.jsx' | xargs zeit-eslint"
-  },
+  "scripts": {},
   "files": [
     "bin",
     "lib"
