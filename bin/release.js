@@ -7,20 +7,20 @@ const semVer = require('semver');
 const inquirer = require('inquirer');
 const open = require('opn');
 const checkForUpdate = require('update-check');
-const {red} = require('chalk');
+const { red } = require('chalk');
 const nodeVersion = require('node-version');
 const sleep = require('delay');
 
 // Utilities
 const groupChanges = require('../lib/group');
-const {branchSynced, getRepo} = require('../lib/repo');
+const { branchSynced, getRepo } = require('../lib/repo');
 const getCommits = require('../lib/commits');
 const getChoices = require('../lib/choices');
 const getTags = require('../lib/tags');
 const definitions = require('../lib/definitions');
 const connect = require('../lib/connect');
 const createChangelog = require('../lib/changelog');
-const {fail, create: createSpinner} = require('../lib/spinner');
+const { fail, create: createSpinner } = require('../lib/spinner');
 const bumpVersion = require('../lib/bump');
 const pkg = require('../package');
 const applyHook = require('../lib/hook');
@@ -33,13 +33,20 @@ if (nodeVersion.major < 6) {
 	process.exit(1);
 }
 
-args.option('pre', 'Mark the release as prerelease')
+args
+	.option('pre', 'Mark the release as prerelease')
 	.option('overwrite', 'If the release already exists, replace it')
 	.option('publish', 'Instead of creating a draft, publish the release')
 	.option(['H', 'hook'], 'Specify a custom file to pipe releases through')
 	.option(['t', 'previous-tag'], 'Specify previous release', '')
-	.option(['u', 'show-url'], 'Show the release URL instead of opening it in the browser')
-	.option(['s', 'skip-questions'], 'Skip the questions and create a simple list without the headings');
+	.option(
+		['u', 'show-url'],
+		'Show the release URL instead of opening it in the browser'
+	)
+	.option(
+		['s', 'skip-questions'],
+		'Skip the questions and create a simple list without the headings'
+	);
 
 const flags = args.parse(process.argv);
 
@@ -57,20 +64,20 @@ const changeTypes = [
 		handle: 'major',
 		name: 'Major Change',
 		pluralName: 'Major Changes',
-		description: 'incompatible API change'
+		description: 'incompatible API change',
 	},
 	{
 		handle: 'minor',
 		name: 'Minor Change',
 		pluralName: 'Minor Changes',
-		description: 'backwards-compatible functionality'
+		description: 'backwards-compatible functionality',
 	},
 	{
 		handle: 'patch',
 		name: 'Patch',
 		pluralName: 'Patches',
-		description: 'backwards-compatible bug fix'
-	}
+		description: 'backwards-compatible bug fix',
+	},
 ];
 
 const getReleaseURL = (release, edit = false) => {
@@ -88,8 +95,7 @@ const createRelease = async (tag, changelog, exists) => {
 
 	const methodPrefix = exists ? 'edit' : 'create';
 	const method = `${methodPrefix}Release`;
-	const {pre, publish, showUrl} = flags;
-
+	const { pre, publish, showUrl } = flags;
 
 	const body = {
 		owner: repoDetails.user,
@@ -100,7 +106,7 @@ const createRelease = async (tag, changelog, exists) => {
 		/* eslint-enable camelcase */
 		body: changelog,
 		draft: !publish,
-		prerelease: pre
+		prerelease: pre,
 	};
 
 	if (exists) {
@@ -128,11 +134,11 @@ const createRelease = async (tag, changelog, exists) => {
 
 	if (!showUrl) {
 		try {
-			open(releaseURL, {wait: false});
+			open(releaseURL, { wait: false });
 			console.log(`\n${chalk.bold('Done!')} Opened release in browser...`);
 
 			return;
-		// eslint-disable-next-line no-empty
+			// eslint-disable-next-line no-empty
 		} catch (err) {}
 	}
 
@@ -172,7 +178,9 @@ const orderCommits = async (commits, tags, exists) => {
 					continue;
 				}
 
-				const questionExists = questions.find(question => question.message === line);
+				const questionExists = questions.find(
+					(question) => question.message === line
+				);
 
 				if (questionExists) {
 					continue;
@@ -196,7 +204,7 @@ const orderCommits = async (commits, tags, exists) => {
 		if (definition) {
 			predefined[commit.hash] = {
 				type: definition,
-				message
+				message,
 			};
 
 			continue;
@@ -209,7 +217,7 @@ const orderCommits = async (commits, tags, exists) => {
 				// The type doesn't matter since it is not included in the
 				// final changelog
 				type: 'patch',
-				message
+				message,
 			};
 
 			continue;
@@ -219,7 +227,7 @@ const orderCommits = async (commits, tags, exists) => {
 			name: commit.hash,
 			message,
 			type: 'list',
-			choices
+			choices,
 		});
 	}
 
@@ -245,11 +253,13 @@ const orderCommits = async (commits, tags, exists) => {
 			}
 
 			const type = answers[answer];
-			const {message} = questions.find(question => question.name === answer);
+			const { message } = questions.find(
+				(question) => question.name === answer
+			);
 
 			answers[answer] = {
 				type,
-				message
+				message,
 			};
 		}
 
@@ -263,9 +273,16 @@ const orderCommits = async (commits, tags, exists) => {
 
 	const results = Object.assign({}, predefined, answers);
 	const grouped = groupChanges(results, changeTypes);
-	const changes = await createChangelog(grouped, commits, changeTypes, flags.skipQuestions, flags.hook, flags.showUrl);
+	const changes = await createChangelog(
+		grouped,
+		commits,
+		changeTypes,
+		flags.skipQuestions,
+		flags.hook,
+		flags.showUrl
+	);
 
-	let {credits, changelog} = changes;
+	let { credits, changelog } = changes;
 
 	if (!changelog) {
 		changelog = 'Initial release';
@@ -279,7 +296,7 @@ const orderCommits = async (commits, tags, exists) => {
 		changeTypes,
 		commits,
 		groupedCommits: grouped,
-		authors: credits
+		authors: credits,
 	});
 
 	// Upload changelog to GitHub Releases
@@ -315,7 +332,7 @@ const checkReleaseStatus = async () => {
 
 	try {
 		const unordered = await getTags({
-			previousTag: flags.previousTag
+			previousTag: flags.previousTag,
 		});
 		tags = unordered.sort((a, b) => new Date(b.date) - new Date(a.date));
 	} catch (err) {
@@ -342,7 +359,7 @@ const checkReleaseStatus = async () => {
 	try {
 		response = await githubConnection.repos.getReleases({
 			owner: repoDetails.user,
-			repo: repoDetails.repo
+			repo: repoDetails.repo,
 		});
 	} catch (err) {
 		console.error(err);
@@ -386,11 +403,11 @@ const checkReleaseStatus = async () => {
 
 	if (!flags.showUrl) {
 		try {
-			open(releaseURL, {wait: false});
+			open(releaseURL, { wait: false });
 			console.error(`${prefix}. Opened in browser...`);
 
 			return;
-		// eslint-disable-next-line no-empty
+			// eslint-disable-next-line no-empty
 		} catch (err) {}
 	}
 
@@ -425,7 +442,7 @@ const main = async () => {
 		if (!allowed) {
 			fail(
 				'Version type not SemVer-compatible ' +
-          '("major", "minor", "patch" or "pre")'
+					'("major", "minor", "patch" or "pre")'
 			);
 		}
 
